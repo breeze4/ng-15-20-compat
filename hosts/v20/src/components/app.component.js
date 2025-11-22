@@ -78,6 +78,28 @@ export const AppComponent = Component({
                     ></legacy-dashboard>
 
                 </section>
+
+                <!-- Zone.js Test Section -->
+                <section class="bg-slate-800 p-6 rounded-xl border border-slate-700 lg:col-span-2">
+                    <h2 class="text-xl font-semibold mb-4 text-purple-300">Zone.js Change Detection Test</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <zone-test
+                            (counter-changed)="handleCounterChange($event)"
+                        ></zone-test>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-slate-900 rounded border border-slate-800">
+                                <h3 class="text-sm font-bold text-green-400 mb-2">Signal Counter</h3>
+                                <div class="text-3xl font-bold font-mono text-center py-2">{{ hostCounter() }}</div>
+                                <p class="text-xs text-slate-500">Works in zoneless - signals notify Angular</p>
+                            </div>
+                            <div class="p-4 bg-slate-900 rounded border border-slate-800">
+                                <h3 class="text-sm font-bold text-red-400 mb-2">Non-Signal Counter</h3>
+                                <div class="text-3xl font-bold font-mono text-center py-2">{{ hostCounterNoSignal }}</div>
+                                <p class="text-xs text-slate-500">Needs Zone.js to detect async changes</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </main>
         </div>
     `
@@ -85,6 +107,10 @@ export const AppComponent = Component({
     auth = inject(AuthService);
     currentRoute = signal('/dashboard');
     logs = signal(['System initialized.', 'Waiting for auth...']);
+    hostCounter = signal(0);
+
+    // Non-signal counter to demonstrate Zone.js dependency
+    hostCounterNoSignal = 0;
 
     handleNav(event) {
         const route = event.detail.route;
@@ -94,5 +120,12 @@ export const AppComponent = Component({
 
     addLog(msg) {
         this.logs.update(l => [msg, ...l]);
+    }
+
+    handleCounterChange(event) {
+        this.hostCounter.set(event.detail.counter);
+        this.hostCounterNoSignal = event.detail.counter;
+        const type = event.detail.async ? 'async' : 'sync';
+        this.addLog(`Counter ${type}: ${event.detail.counter}`);
     }
 });

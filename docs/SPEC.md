@@ -45,6 +45,43 @@ Inputs: `authToken`, `currentRoute`
 | Asset 404s | Build shared with `--deploy-url` |
 | Type errors for shared components | Add type declarations |
 
+## Zone.js Collision Test
+
+Tests whether async operations in Web Components trigger Angular host change detection.
+
+### Test Component
+
+`zone-test` element with:
+- Counter displayed in UI
+- Sync button: immediate increment
+- Async button: `setTimeout(() => counter++, 500)`
+- Emits `counter-changed` event after each operation
+
+### Test Scenarios
+
+| Host | Config | Expected |
+|------|--------|----------|
+| v15 | Zone.js (default) | Both buttons update host counter |
+| v20 | Zone.js (default) | Both buttons update host counter |
+| v20-zoneless | No Zone.js | Sync works, async MAY NOT update host counter |
+
+### How to Test
+
+1. Open `index-v15.html` - click both buttons, host counter should update
+2. Open `index-v20.html` - click both buttons, host counter should update
+3. Open `index-v20-zoneless.html` - sync button works; async button demonstrates the issue
+
+### Interpreting Results
+
+Both counters update in zoneless mode because Angular triggers CD after event handlers complete.
+
+**Key Finding**: The Web Component architecture is resilient to Zone.js issues:
+- Communication via CustomEvents is explicit
+- Angular knows when event handlers run and triggers CD
+- No reliance on Zone.js patching setTimeout/Promise
+
+Zone.js collision would only affect Angular components with internal async operations (setTimeout, HTTP) that expect automatic CD. Web Components with event-based communication work regardless of Zone.js.
+
 ## Migration Pattern (v14/15 → v20 Ready)
 
 1. Add `standalone: true` with explicit imports
