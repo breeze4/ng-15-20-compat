@@ -20,22 +20,16 @@ export const AppComponent = Component({
                     <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
                         Prototype: Ng20 Host
                     </h1>
-                    <p class="text-slate-400 text-sm">Running in Zoneless Compatibility Mode</p>
+                    <p class="text-slate-400 text-sm">Running with Signals API</p>
                 </div>
 
-                <div class="flex items-center gap-4">
-                    <ng-container *ngIf="auth.user(); else loggedOut">
-                        <span class="text-green-400">● {{ auth.user().name }}</span>
-                        <button (click)="auth.logout()" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm">
-                            Sign Out
-                        </button>
-                    </ng-container>
-                    <ng-template #loggedOut>
-                        <button (click)="auth.login()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm">
-                            Authenticate (OIDC)
-                        </button>
-                    </ng-template>
-                </div>
+                <!-- Shared Auth Component -->
+                <shared-auth-modal
+                    [attr.auth-token]="auth.token()"
+                    [attr.user-name]="auth.user()?.name || ''"
+                    (auth-login)="auth.login()"
+                    (auth-logout)="auth.logout()"
+                ></shared-auth-modal>
             </header>
 
             <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -45,19 +39,14 @@ export const AppComponent = Component({
                     <h2 class="text-xl font-semibold mb-4 text-blue-300">Host App (v20)</h2>
 
                     <div class="mb-6 space-y-2">
-                        <label class="text-xs uppercase tracking-wider text-slate-500">Current Route (Host Driven)</label>
-                        <div class="flex gap-2">
-                            <button (click)="navigate('/dashboard')"
-                                class="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition"
-                                [class.ring-2]="currentRoute() === '/dashboard'">
-                                /dashboard
-                            </button>
-                            <button (click)="navigate('/settings')"
-                                class="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600 transition"
-                                [class.ring-2]="currentRoute() === '/settings'">
-                                /settings
-                            </button>
-                        </div>
+                        <label class="text-xs uppercase tracking-wider text-slate-500">Navigation (Shared Component)</label>
+
+                        <!-- Shared Navbar Component -->
+                        <shared-navbar
+                            [attr.current-route]="currentRoute()"
+                            (navigate)="handleNav($event)"
+                        ></shared-navbar>
+
                         <div class="mt-2 text-xs font-mono text-slate-400">
                             Active Path: {{ currentRoute() }}
                         </div>
@@ -74,18 +63,18 @@ export const AppComponent = Component({
                 <!-- Legacy Integration Point -->
                 <section class="bg-slate-800 p-6 rounded-xl border border-slate-700 relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-yellow-600 text-white text-xs px-2 py-1 rounded-bl">
-                        Angular Elements (v15)
+                        Shared Components
                     </div>
-                    <h2 class="text-xl font-semibold mb-4 text-yellow-300">Shared Component</h2>
+                    <h2 class="text-xl font-semibold mb-4 text-yellow-300">Legacy Dashboard</h2>
 
                     <p class="text-sm text-slate-400 mb-6">
-                        This area loads the "Legacy Dashboard" component. It receives the Auth Token and Route state from the Host via attributes.
+                        All three components below are shared Web Components receiving state via attributes.
                     </p>
 
                     <legacy-dashboard
                         [attr.auth-token]="auth.token()"
                         [attr.current-route]="currentRoute()"
-                        (legacy-navigate)="handleLegacyNav($event)"
+                        (legacy-navigate)="handleNav($event)"
                     ></legacy-dashboard>
 
                 </section>
@@ -97,15 +86,10 @@ export const AppComponent = Component({
     currentRoute = signal('/dashboard');
     logs = signal(['System initialized.', 'Waiting for auth...']);
 
-    navigate(path) {
-        this.currentRoute.set(path);
-        this.addLog(`Host navigated to: ${path}`);
-    }
-
-    handleLegacyNav(event) {
-        const requestedRoute = event.detail.route;
-        this.addLog(`v15 Component requested nav: ${requestedRoute}`);
-        this.currentRoute.set(requestedRoute);
+    handleNav(event) {
+        const route = event.detail.route;
+        this.currentRoute.set(route);
+        this.addLog(`Navigated to: ${route}`);
     }
 
     addLog(msg) {

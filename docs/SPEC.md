@@ -42,7 +42,6 @@ Inputs: `authToken`, `currentRoute`
 
 | Issue | Potential Fix |
 |-------|---------------|
-| Zone.js conflict | Load zone.js once per host only |
 | Asset 404s | Build shared with `--deploy-url` |
 | Type errors for shared components | Add type declarations |
 
