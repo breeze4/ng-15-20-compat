@@ -7,7 +7,14 @@ export const AuthService = Injectable({ providedIn: 'root' })(class {
     token = '';
 
     constructor() {
-        // Subscribe to auth channel for cross-app sync
+        // Restore from cookies on init
+        const persisted = authChannel.getPersistedAuth();
+        if (persisted) {
+            this.token = persisted.token;
+            this.user = persisted.user;
+        }
+
+        // Subscribe to auth channel for cross-tab sync
         authChannel.onMessage((message) => {
             if (message.type === 'login') {
                 this.token = message.token;

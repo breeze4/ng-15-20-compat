@@ -7,7 +7,14 @@ export class AuthService {
     token = signal('');
 
     constructor() {
-        // Subscribe to auth channel for cross-app sync
+        // Restore from cookies on init
+        const persisted = authChannel.getPersistedAuth();
+        if (persisted) {
+            this.token.set(persisted.token);
+            this.user.set(persisted.user);
+        }
+
+        // Subscribe to auth channel for cross-tab sync
         authChannel.onMessage((message) => {
             if (message.type === 'login') {
                 this.token.set(message.token);

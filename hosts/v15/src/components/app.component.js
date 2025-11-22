@@ -43,6 +43,7 @@ export const AppComponent = Component({
                         <!-- Shared Navbar Component -->
                         <shared-navbar
                             [attr.current-route]="currentRoute"
+                            [attr.app-id]="'v15'"
                             (navigate)="handleNav($event)"
                         ></shared-navbar>
 

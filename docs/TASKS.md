@@ -26,12 +26,8 @@
 
 - [x] Update v20 `auth.service.js` - Same channel integration using signals
 
-- [ ] Update `index.html` - Change landing page to redirect or frame the v15 app at root, link to v20 at `/v20`
+- [x] Update `index.html` - Change landing page to show cross-app features, link to both apps
 
-- [ ] Move v15 app to serve from root path - Update any relative paths in v15 host
+- [x] Update `navbar.element.js` - Add cross-app routes with `app-id` attribute, use actual href navigation for cross-app links vs events for same-app routes
 
-- [ ] Configure v20 app for `/v20` base path - Update base href or deploy URL
-
-- [ ] Update `navbar.element.js` - Add cross-app routes (`/` for v15 home, `/v20` for v20 home), use actual href navigation for cross-app links vs events for same-app routes
-
-- [ ] Update both app components - Handle cross-app navigation events from navbar by changing `window.location` instead of internal state
+- [x] Update both app components - Pass `app-id` attribute to navbar for cross-app navigation
