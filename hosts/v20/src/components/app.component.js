@@ -79,23 +79,57 @@ export const AppComponent = Component({
 
                 </section>
 
-                <!-- Zone.js Test Section -->
+                <!-- Zone.js Test Scenarios -->
                 <section class="bg-slate-800 p-6 rounded-xl border border-slate-700 lg:col-span-2">
-                    <h2 class="text-xl font-semibold mb-4 text-purple-300">Zone.js Change Detection Test</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <zone-test
-                            (counter-changed)="handleCounterChange($event)"
-                        ></zone-test>
+                    <h2 class="text-xl font-semibold mb-4 text-purple-300">Zone.js Dependency Test Scenarios</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Component Side -->
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-400 mb-3">Component (Web Component)</h3>
+                            <zone-scenarios
+                                [attr.input-value]="testInputValue()"
+                                (scenario-event)="handleScenarioEvent($event)"
+                                (async-complete)="handleAsyncComplete($event)"
+                            ></zone-scenarios>
+                        </div>
+
+                        <!-- Host Side -->
                         <div class="space-y-4">
-                            <div class="p-4 bg-slate-900 rounded border border-slate-800">
-                                <h3 class="text-sm font-bold text-green-400 mb-2">Signal Counter</h3>
-                                <div class="text-3xl font-bold font-mono text-center py-2">{{ hostCounter() }}</div>
-                                <p class="text-xs text-slate-500">Works in zoneless - signals notify Angular</p>
+                            <h3 class="text-sm font-bold text-slate-400 mb-3">Host (Angular {{ zoneless ? 'Zoneless' : 'Zone' }})</h3>
+
+                            <!-- Test 1: Outer to Inner Control -->
+                            <div class="p-3 bg-slate-900 rounded border border-slate-800">
+                                <h4 class="text-xs font-bold text-blue-400 mb-2">1. Outer → Inner</h4>
+                                <button
+                                    (click)="updateTestInput()"
+                                    class="w-full px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded">
+                                    Send: "{{ testInputValue() }}" → "{{ nextInputValue() }}"
+                                </button>
                             </div>
-                            <div class="p-4 bg-slate-900 rounded border border-slate-800">
-                                <h3 class="text-sm font-bold text-red-400 mb-2">Non-Signal Counter</h3>
-                                <div class="text-3xl font-bold font-mono text-center py-2">{{ hostCounterNoSignal }}</div>
-                                <p class="text-xs text-slate-500">Needs Zone.js to detect async changes</p>
+
+                            <!-- Test 2: Inner to Outer Result -->
+                            <div class="p-3 bg-slate-900 rounded border border-slate-800">
+                                <h4 class="text-xs font-bold text-green-400 mb-2">2. Inner → Outer</h4>
+                                <div class="text-2xl font-bold font-mono text-center py-1">{{ hostEventCount() }}</div>
+                                <p class="text-xs text-slate-500 text-center">Events received from component</p>
+                            </div>
+
+                            <!-- Test 3: Async Results -->
+                            <div class="p-3 bg-slate-900 rounded border border-slate-800">
+                                <h4 class="text-xs font-bold text-yellow-400 mb-2">3. Async Results (Host Side)</h4>
+                                <div class="grid grid-cols-2 gap-2 text-center">
+                                    <div>
+                                        <div class="text-lg font-bold font-mono">{{ hostWellBehaved() }}</div>
+                                        <p class="text-xs text-slate-500">Well-behaved</p>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-bold font-mono">{{ hostLazy() }}</div>
+                                        <p class="text-xs text-slate-500">Lazy (event)</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-red-400 mt-2 text-center">
+                                    Compare component's 3b display vs host's lazy value
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -107,10 +141,43 @@ export const AppComponent = Component({
     auth = inject(AuthService);
     currentRoute = signal('/dashboard');
     logs = signal(['System initialized.', 'Waiting for auth...']);
-    hostCounter = signal(0);
 
-    // Non-signal counter to demonstrate Zone.js dependency
-    hostCounterNoSignal = 0;
+    // Zone test scenario signals
+    testInputValue = signal('Alpha');
+    hostEventCount = signal(0);
+    hostWellBehaved = signal(0);
+    hostLazy = signal(0);
+
+    // For zoneless indicator
+    zoneless = false; // Will be overridden in zoneless bootstrap
+
+    // Input values to cycle through
+    _inputValues = ['Alpha', 'Beta', 'Gamma', 'Delta'];
+    _inputIndex = 0;
+
+    nextInputValue() {
+        return this._inputValues[(this._inputIndex + 1) % this._inputValues.length];
+    }
+
+    updateTestInput() {
+        this._inputIndex = (this._inputIndex + 1) % this._inputValues.length;
+        this.testInputValue.set(this._inputValues[this._inputIndex]);
+        this.addLog(`Input → ${this._inputValues[this._inputIndex]}`);
+    }
+
+    handleScenarioEvent(event) {
+        this.hostEventCount.set(event.detail.count);
+        this.addLog(`Event received: ${event.detail.count}`);
+    }
+
+    handleAsyncComplete(event) {
+        if (event.detail.type === 'wellbehaved') {
+            this.hostWellBehaved.set(event.detail.counter);
+        } else {
+            this.hostLazy.set(event.detail.counter);
+        }
+        this.addLog(`Async ${event.detail.type}: ${event.detail.counter}`);
+    }
 
     handleNav(event) {
         const route = event.detail.route;
@@ -120,12 +187,5 @@ export const AppComponent = Component({
 
     addLog(msg) {
         this.logs.update(l => [msg, ...l]);
-    }
-
-    handleCounterChange(event) {
-        this.hostCounter.set(event.detail.counter);
-        this.hostCounterNoSignal = event.detail.counter;
-        const type = event.detail.async ? 'async' : 'sync';
-        this.addLog(`Counter ${type}: ${event.detail.counter}`);
     }
 });

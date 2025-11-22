@@ -1,27 +1,37 @@
-# Tasks: Angular 15/20 Compatibility Prototype
+# Shared Auth & Cross-App Routing
 
-## Phase 1: Project Structure
-- [x] Create directory structure (hosts/v15, hosts/v20, shared, legacy-v14)
-- [x] Move current app to hosts/v20 as base
-- [x] Delete app.js duplicate
+## Mini Spec
 
-## Phase 2: Version Pinning
-- [x] Update v20 host to Angular 19 imports (simulating v20)
-- [x] Create v15 host with Angular 15 imports
+### Shared Auth via BroadcastChannel
+- Apps sync login/logout in real-time across tabs using BroadcastChannel API
+- When one app logs in: broadcasts `{type: 'login', token, user}` to channel
+- When one app logs out: broadcasts `{type: 'logout'}` to channel
+- Each host subscribes on init, updates its auth state when receiving messages
+- No localStorage persistence; session only lives while at least one tab is open
 
-## Phase 3: Shared Components Library
-- [x] Create shared/components/navbar.element.js
-- [x] Create shared/components/auth-modal.element.js
-- [x] Move legacy-dashboard to shared/components/
-- [x] Create shared/index.js exports
+### Unified URL Routing
+- v15 app: `/` (root)
+- v20 app: `/v20/*`
+- Navbar displays routes for both apps
+- Same-app routes: emit events (current behavior)
+- Cross-app routes: use `window.location` navigation
 
-## Phase 4: Host Integration
-- [x] Update v20 host to use shared components
-- [x] Create v15 host integration
+---
 
-## Phase 5: Legacy v14 Example
-- [x] Create legacy-v14 NgModule example (README with migration pattern)
+## Tasks
 
-## Phase 6: Entry Points
-- [x] Create index-v15.html and index-v20.html entry points
-- [x] Update root index.html as selector page
+- [x] Create `shared/services/auth-channel.js` - BroadcastChannel wrapper with `broadcast(token, user)`, `onMessage(callback)`, and `close()` methods
+
+- [x] Update v15 `auth.service.js` - Subscribe to auth channel on init, broadcast on login/logout, update state when receiving broadcasts
+
+- [x] Update v20 `auth.service.js` - Same channel integration using signals
+
+- [ ] Update `index.html` - Change landing page to redirect or frame the v15 app at root, link to v20 at `/v20`
+
+- [ ] Move v15 app to serve from root path - Update any relative paths in v15 host
+
+- [ ] Configure v20 app for `/v20` base path - Update base href or deploy URL
+
+- [ ] Update `navbar.element.js` - Add cross-app routes (`/` for v15 home, `/v20` for v20 home), use actual href navigation for cross-app links vs events for same-app routes
+
+- [ ] Update both app components - Handle cross-app navigation events from navbar by changing `window.location` instead of internal state
