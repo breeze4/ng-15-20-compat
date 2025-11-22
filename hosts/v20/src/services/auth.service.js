@@ -1,4 +1,4 @@
-import { signal } from 'https://esm.sh/@angular/core@19.0.0?deps=rxjs@7.8.1,zone.js@0.15.0';
+import { signal } from 'https://esm.sh/@angular/core@19.0.0?deps=rxjs@7.8.1';
 
 // Service simulating Auth (Basic JWT)
 export class AuthService {

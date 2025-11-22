@@ -1,9 +1,9 @@
 // Bootstrap imports - ZONELESS MODE (no zone.js polyfill imported)
-// Note: Still use same esm.sh URLs as main.js to avoid duplicate Angular instances
+// Note: Different esm.sh URLs than main.js - zone.js excluded from deps
 import 'https://esm.sh/@angular/compiler@19.0.0';
 
-import { bootstrapApplication } from 'https://esm.sh/@angular/platform-browser@19.0.0?deps=rxjs@7.8.1,zone.js@0.15.0';
-import { provideExperimentalZonelessChangeDetection } from 'https://esm.sh/@angular/core@19.0.0?deps=rxjs@7.8.1,zone.js@0.15.0';
+import { bootstrapApplication } from 'https://esm.sh/@angular/platform-browser@19.0.0?deps=rxjs@7.8.1';
+import { provideExperimentalZonelessChangeDetection } from 'https://esm.sh/@angular/core@19.0.0?deps=rxjs@7.8.1';
 
 // Register shared web components
 import '../../../shared/index.js';

@@ -3,8 +3,8 @@ import {
     signal,
     inject,
     CUSTOM_ELEMENTS_SCHEMA
-} from 'https://esm.sh/@angular/core@19.0.0?deps=rxjs@7.8.1,zone.js@0.15.0';
-import { CommonModule } from 'https://esm.sh/@angular/common@19.0.0?deps=rxjs@7.8.1,zone.js@0.15.0';
+} from 'https://esm.sh/@angular/core@19.0.0?deps=rxjs@7.8.1';
+import { CommonModule } from 'https://esm.sh/@angular/common@19.0.0?deps=rxjs@7.8.1';
 import { AuthService } from '../services/auth.service.js';
 
 export const AppComponent = Component({
