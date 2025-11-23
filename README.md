@@ -41,6 +41,6 @@ cd externals/profile-v20 && pnpm start
 
 ## URLs
 
-- http://localhost:4200 - Dashboard (Angular 15)
+- http://localhost:4200 - Dashboard (Angular 15), proxies to both settings and profile as a stitched together app
 - http://localhost:4201 - Settings (Angular 19)
 - http://localhost:4202 - Profile (Angular 19 zoneless)
