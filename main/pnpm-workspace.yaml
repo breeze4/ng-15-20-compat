@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - libs/*
+
+onlyBuiltDependencies:
+  - esbuild
+  - nice-napi
+  - nx

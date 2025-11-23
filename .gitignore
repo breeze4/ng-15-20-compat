@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+externals/*/node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.angular/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Nx
+.nx/
+
+# Logs
+*.log
+npm-debug.log*

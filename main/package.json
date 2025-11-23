@@ -1,0 +1,17 @@
+{
+  "name": "ng-15-20-compat",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "nx run-many -t build",
+    "build:host": "nx build host-v15",
+    "build:shared": "nx build shared",
+    "publish:shared": "cd dist/libs/shared && pnpm publish --registry http://$WIN_IP:4873 --no-git-checks",
+    "serve:host": "nx serve host-v15"
+  },
+  "devDependencies": {
+    "@nx/js": "16.10.0",
+    "nx": "16.10.0",
+    "typescript": "~4.9.0"
+  }
+}

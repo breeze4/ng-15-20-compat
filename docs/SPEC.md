@@ -12,6 +12,75 @@ Test that shared components work in both Angular 15 and Angular 20 host applicat
 
 All are separate builds. Shared components published as library or loaded at runtime.
 
+No Module Federation.
+
+## Repository Structure
+
+The base directory contains two independent areas:
+
+- **`main/`**: Nx monorepo with Angular 15 host and shared library
+- **`externals/`**: Independent Angular 20 apps (settings-v20, profile-v20)
+
+Each area is self-contained. Run pnpm commands from `main/` or `externals/<app>/`, not the base directory.
+
+## Main Workspace (pnpm + Nx)
+
+### Build System
+- **pnpm** for package management
+- **Nx** for build orchestration and caching
+- Shared library published to local npm registry at `http://0.0.0.0:4873`
+
+### App Structure
+```
+main/
+  apps/
+    host-v15/    # Angular 15 - Dashboard (main entry at /)
+  libs/
+    shared/      # @myorg/shared - published to local registry
+```
+
+### Local Registry Workflow
+1. Build shared library: `cd main && pnpm build:shared`
+2. Publish to local registry: `cd main && pnpm publish:shared`
+3. External apps consume `@myorg/shared` as npm dependency from registry
+
+## External Apps
+
+Independent Angular CLI projects in `externals/`:
+
+```
+externals/
+  settings-v20/  # Angular 19 - Settings (port 4201)
+  profile-v20/   # Angular 19 zoneless - Profile (port 4202)
+```
+
+Each manages its own dependencies and consumes `@myorg/shared` from the local registry.
+
+### Routing Architecture
+
+Each app is a separate build with its own entry point and Angular Router.
+
+**Host v15 (Dashboard)** - Base: `/`
+- `/overview` - Dashboard overview
+- `/analytics` - Analytics view
+- `/reports` - Reports view
+
+**Settings v20** - Base: `/settings/`
+- `/general` - General settings
+- `/security` - Security settings
+- `/notifications` - Notification preferences
+
+**Profile v20 Zoneless** - Base: `/profile/`
+- `/overview` - Profile overview
+- `/preferences` - User preferences
+- `/activity` - Activity log
+
+### Cross-App Navigation
+- Intra-app: Angular Router with `routerLink`
+- Inter-app: Absolute URLs via `window.location` or `<a href>`
+- Auth state preserved via BroadcastChannel across app transitions
+- Navbar renders links based on current app context
+
 ## Data Flow
 
 ### Auth

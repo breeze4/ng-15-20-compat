@@ -1,33 +1,36 @@
-# Shared Auth & Cross-App Routing
+# Tasks: Move V20 Apps to Externals with Local Registry
 
-## Mini Spec
+## Phase 1: Make Shared Library Publishable
+- [x] 1. Update `libs/shared/package.json` - remove private flag, set name to `@myorg/shared`
+- [x] 2. Update `libs/shared/project.json` - add build target
+- [x] 3. Update `libs/shared/tsconfig.json` - enable declarations
+- [x] 4. Create `libs/shared/.npmrc` - point to local registry
 
-### Shared Auth via BroadcastChannel
-- Apps sync login/logout in real-time across tabs using BroadcastChannel API
-- When one app logs in: broadcasts `{type: 'login', token, user}` to channel
-- When one app logs out: broadcasts `{type: 'logout'}` to channel
-- Each host subscribes on init, updates its auth state when receiving messages
-- No localStorage persistence; session only lives while at least one tab is open
+## Phase 2: Create External Settings App
+- [x] 5. Create `externals/settings-v20/` directory
+- [x] 6. Move `apps/settings-v20/src/` to `externals/settings-v20/src/`
+- [x] 7. Create `externals/settings-v20/package.json`
+- [x] 8. Create `externals/settings-v20/angular.json`
+- [x] 9. Create `externals/settings-v20/tsconfig.json` and `tsconfig.app.json`
+- [x] 10. Create `externals/settings-v20/.npmrc`
+- [x] 11. Update imports from `@shared/*` to `@myorg/shared`
 
-### Unified URL Routing
-- v15 app: `/` (root)
-- v20 app: `/v20/*`
-- Navbar displays routes for both apps
-- Same-app routes: emit events (current behavior)
-- Cross-app routes: use `window.location` navigation
+## Phase 3: Create External Profile App
+- [x] 12. Create `externals/profile-v20/` directory
+- [x] 13. Move `apps/profile-v20/src/` to `externals/profile-v20/src/`
+- [x] 14. Create `externals/profile-v20/package.json`
+- [x] 15. Create `externals/profile-v20/angular.json`
+- [x] 16. Create `externals/profile-v20/tsconfig.json` and `tsconfig.app.json`
+- [x] 17. Create `externals/profile-v20/.npmrc`
+- [x] 18. Update imports from `@shared/*` to `@myorg/shared`
 
----
+## Phase 4: Clean Up Nx Workspace
+- [x] 19. Delete `apps/settings-v20/` directory
+- [x] 20. Delete `apps/profile-v20/` directory
+- [x] 21. Delete `proxy.conf.js`
+- [x] 22. Update root `package.json` - add shared build/publish scripts
+- [x] 23. Update `pnpm-workspace.yaml`
 
-## Tasks
-
-- [x] Create `shared/services/auth-channel.js` - BroadcastChannel wrapper with `broadcast(token, user)`, `onMessage(callback)`, and `close()` methods
-
-- [x] Update v15 `auth.service.js` - Subscribe to auth channel on init, broadcast on login/logout, update state when receiving broadcasts
-
-- [x] Update v20 `auth.service.js` - Same channel integration using signals
-
-- [x] Update `index.html` - Change landing page to show cross-app features, link to both apps
-
-- [x] Update `navbar.element.js` - Add cross-app routes with `app-id` attribute, use actual href navigation for cross-app links vs events for same-app routes
-
-- [x] Update both app components - Pass `app-id` attribute to navbar for cross-app navigation
+## Phase 5: Update Documentation
+- [x] 24. Update `docs/SPEC.md` with new architecture
+- [x] 25. Update `README.md` with workflow
