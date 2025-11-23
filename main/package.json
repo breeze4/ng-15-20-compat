@@ -6,12 +6,15 @@
     "build": "nx run-many -t build",
     "build:host": "nx build host-v15",
     "build:shared": "nx build shared",
-    "publish:shared": "cd dist/libs/shared && pnpm publish --registry http://$WIN_IP:4873 --no-git-checks",
+    "publish:shared": "cd dist/libs/shared && pnpm publish --no-git-checks",
     "serve:host": "nx serve host-v15"
   },
+  "dependencies": {
+    "zone.js": "~0.12.0"
+  },
   "devDependencies": {
-    "@nx/js": "16.10.0",
-    "nx": "16.10.0",
+    "@nx/js": "19.8.0",
+    "nx": "19.8.0",
     "typescript": "~4.9.0"
   }
 }

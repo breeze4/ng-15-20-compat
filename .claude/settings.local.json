@@ -6,7 +6,8 @@
       "Bash(/mnt/d/dev/_ws/ng-15-20-compat/.npmrc)",
       "Bash(/mnt/d/dev/_ws/ng-15-20-compat/externals/settings-v20/.npmrc)",
       "Bash(/mnt/d/dev/_ws/ng-15-20-compat/externals/profile-v20/.npmrc)",
-      "Bash(pnpm install)"
+      "Bash(pnpm install)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

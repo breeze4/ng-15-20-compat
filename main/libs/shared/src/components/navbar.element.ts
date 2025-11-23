@@ -28,7 +28,7 @@ export class NavbarElement extends HTMLElement {
             const target = e.target as HTMLElement;
             if (target.matches('.nav-link')) {
                 e.preventDefault();
-                const route = target.dataset.route;
+                const route = target.dataset['route'];
                 this.dispatchEvent(new CustomEvent('navigate', {
                     detail: { route },
                     bubbles: true,

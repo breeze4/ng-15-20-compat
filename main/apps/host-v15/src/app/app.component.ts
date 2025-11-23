@@ -101,8 +101,8 @@ export class AppComponent {
     this.authChannel.broadcast(null, null);
   }
 
-  onNavigate(event: CustomEvent): void {
-    const route = event.detail.route;
+  onNavigate(event: Event): void {
+    const route = (event as CustomEvent).detail.route;
     this.router.navigate([route]);
   }
 }

@@ -1,0 +1,12 @@
+{
+  "/settings": {
+    "target": "http://localhost:4201",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/profile": {
+    "target": "http://localhost:4202",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
