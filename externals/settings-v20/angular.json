@@ -20,7 +20,8 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [],
             "styles": ["src/styles.css"],
-            "scripts": []
+            "scripts": [],
+            "baseHref": "/settings/"
           },
           "configurations": {
             "production": {
@@ -43,6 +44,9 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "servePath": "/settings/"
+          },
           "configurations": {
             "production": {
               "buildTarget": "settings-v20:build:production"

@@ -20,7 +20,8 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [],
             "styles": ["src/styles.css"],
-            "scripts": []
+            "scripts": [],
+            "baseHref": "/profile/"
           },
           "configurations": {
             "production": {
@@ -43,6 +44,9 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "servePath": "/profile/"
+          },
           "configurations": {
             "production": {
               "buildTarget": "profile-v20:build:production"
