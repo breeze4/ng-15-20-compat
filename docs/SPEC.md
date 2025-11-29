@@ -184,6 +184,50 @@ If wrapping Angular 15 components as Web Components for use in Angular 20 zonele
   2. Ensure wrapped components use signals or explicit CD triggers
   3. Build shared components as "well-behaved" Web Components with explicit render()
 
+## Wrapped Angular Components Pattern
+
+Native Angular v15 components wrapped as Web Components using `@angular/elements`. This demonstrates the real migration pattern for sharing Angular components across different Angular versions.
+
+### Component Structure
+
+```
+shared/src/components/zone-scenarios/
+  zone-scenario-1.component.ts    # Input binding test
+  zone-scenario-2.component.ts    # Custom events test
+  zone-scenario-3a.component.ts   # Well-behaved async
+  zone-scenario-3b.component.ts   # Zone-dependent async
+  register.ts                     # createCustomElement registration
+```
+
+### Registration Pattern
+
+Host apps call registration function to define custom elements:
+
+```typescript
+// In host app bootstrap
+import { registerZoneScenarios } from '@myorg/shared';
+
+bootstrapApplication(AppComponent).then(appRef => {
+  registerZoneScenarios(appRef.injector);
+});
+```
+
+### Component Standard
+
+All wrapped components use:
+- `standalone: true`
+- `ViewEncapsulation.ShadowDom`
+- `ChangeDetectionStrategy.OnPush`
+- Inputs via `@Input()` mapped to element attributes
+- Outputs via `@Output()` EventEmitter dispatching CustomEvents
+
+### Why Wrap Instead of Vanilla Web Components
+
+- Demonstrates real migration path for existing Angular codebases
+- Components use Angular DI, services, pipes
+- Zone.js dependency is visible (Scenario 3b)
+- Same component code works in both zoned and zoneless hosts (with caveats)
+
 ## Migration Pattern (v14/15 → v20 Ready)
 
 1. Add `standalone: true` with explicit imports

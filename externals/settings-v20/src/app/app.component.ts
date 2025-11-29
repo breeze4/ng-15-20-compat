@@ -29,6 +29,18 @@ import { authChannel } from '@myorg/shared/services/auth-channel';
       <main>
         <router-outlet></router-outlet>
       </main>
+
+      <section class="zone-scenarios">
+        <h2>Zone.js Test Scenarios</h2>
+        <zone-scenario-1 [attr.value]="scenario1Value"></zone-scenario-1>
+        <zone-scenario-2 (clicked)="onScenario2Click($any($event))"></zone-scenario-2>
+        <p>Host received clicks: {{ scenario2Clicks }}</p>
+        <zone-scenario-3a (asyncComplete)="onScenario3aComplete($any($event))"></zone-scenario-3a>
+        <p>Host received 3a count: {{ scenario3aCount }}</p>
+        <zone-scenario-3b (lazyComplete)="onScenario3bComplete($any($event))"></zone-scenario-3b>
+        <p>Host received 3b count: {{ scenario3bCount }}</p>
+        <button (click)="updateScenario1()">Update Scenario 1 Value</button>
+      </section>
     </div>
   `,
   styles: [`
@@ -53,12 +65,37 @@ import { authChannel } from '@myorg/shared/services/auth-channel';
       background: rgba(255,255,255,0.1);
       border-radius: 0.5rem;
     }
+    .zone-scenarios {
+      margin-top: 2rem;
+      padding: 1rem;
+      border: 2px solid #4a90d9;
+      border-radius: 0.5rem;
+    }
+    .zone-scenarios h2 {
+      margin: 0 0 1rem 0;
+      font-size: 1.2rem;
+    }
+    .zone-scenarios p {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .zone-scenarios button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+    }
   `]
 })
 export class AppComponent {
   authToken = '';
   userName = '';
   currentRoute = '/general';
+
+  // Zone scenario state
+  scenario1Value = 'Initial';
+  scenario2Clicks = 0;
+  scenario3aCount = 0;
+  scenario3bCount = 0;
 
   private authChannelInstance = authChannel;
 
@@ -101,5 +138,22 @@ export class AppComponent {
   onNavigate(event: CustomEvent<{ route: string }>): void {
     const route = event.detail.route;
     this.router.navigate([route]);
+  }
+
+  // Zone scenario handlers
+  updateScenario1(): void {
+    this.scenario1Value = 'Updated-' + Date.now();
+  }
+
+  onScenario2Click(event: CustomEvent<number>): void {
+    this.scenario2Clicks = event.detail;
+  }
+
+  onScenario3aComplete(event: CustomEvent<number>): void {
+    this.scenario3aCount = event.detail;
+  }
+
+  onScenario3bComplete(event: CustomEvent<number>): void {
+    this.scenario3bCount = event.detail;
   }
 }

@@ -17,6 +17,9 @@ dependencies:
   '@angular/core':
     specifier: ^20.0.0
     version: 20.3.13(@angular/compiler@20.3.13)(rxjs@7.8.2)
+  '@angular/elements':
+    specifier: ^20.0.0
+    version: 20.3.13(@angular/core@20.3.13)(rxjs@7.8.2)
   '@angular/forms':
     specifier: ^20.0.0
     version: 20.3.13(@angular/common@20.3.13)(@angular/core@20.3.13)(@angular/platform-browser@20.3.13)(rxjs@7.8.2)
@@ -27,8 +30,8 @@ dependencies:
     specifier: ^20.0.0
     version: 20.3.13(@angular/common@20.3.13)(@angular/core@20.3.13)(@angular/platform-browser@20.3.13)(rxjs@7.8.2)
   '@myorg/shared':
-    specifier: ^0.0.2
-    version: 0.0.2
+    specifier: ^0.0.3
+    version: 0.0.3(@angular/core@20.3.13)(@angular/elements@20.3.13)
   rxjs:
     specifier: ~7.8.0
     version: 7.8.2
@@ -567,6 +570,18 @@ packages:
       '@angular/compiler': 20.3.13
       rxjs: 7.8.2
       tslib: 2.8.1
+
+  /@angular/elements@20.3.13(@angular/core@20.3.13)(rxjs@7.8.2):
+    resolution: {integrity: sha512-8Am4Y5xY8G7j+pZUQy9tIXNdcPr7LF476oc7AVO/u82LoOj4uOeBrmaGtu5H9Nwq3NmbPW7o33iUKbJc0WDkXA==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+    peerDependencies:
+      '@angular/core': 20.3.13
+      rxjs: ^6.5.3 || ^7.4.0
+    dependencies:
+      '@angular/core': 20.3.13(@angular/compiler@20.3.13)(rxjs@7.8.2)
+      rxjs: 7.8.2
+      tslib: 2.8.1
+    dev: false
 
   /@angular/forms@20.3.13(@angular/common@20.3.13)(@angular/core@20.3.13)(@angular/platform-browser@20.3.13)(rxjs@7.8.2):
     resolution: {integrity: sha512-9vu9MCHJtgXvgPH+ZgXN46N3gpBBAckcmG62P7U+9BKivWvv3rEvkgX+4HvO+Pm2D6x/Jy1xbiQuVq9EDGPSNA==}
@@ -2451,8 +2466,14 @@ packages:
     dev: true
     optional: true
 
-  /@myorg/shared@0.0.2:
-    resolution: {integrity: sha512-h9KS4qe2LNiIZK4nMajcXKWIDkl4W5pQh8LAXhHgTd1idtPPyvWpzVbdwdFq7l2ePWBgRY0id96KicliRDLXhA==}
+  /@myorg/shared@0.0.3(@angular/core@20.3.13)(@angular/elements@20.3.13):
+    resolution: {integrity: sha512-1eDwjmPkGykuhGt+Lxy+5RL9lI5pVuBD4WuDTD7lz8l3EJj8lRkK1DGi6AmhWqIGXcv5AyZ2iSCgQqGKrzclNQ==}
+    peerDependencies:
+      '@angular/core': ^15.0.0 || ^19.0.0 || ^20.0.0
+      '@angular/elements': ^15.0.0 || ^19.0.0 || ^20.0.0
+    dependencies:
+      '@angular/core': 20.3.13(@angular/compiler@20.3.13)(rxjs@7.8.2)
+      '@angular/elements': 20.3.13(@angular/core@20.3.13)(rxjs@7.8.2)
     dev: false
 
   /@napi-rs/nice-android-arm-eabi@1.1.1:
