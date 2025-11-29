@@ -83,6 +83,8 @@ This guide demonstrates bundling a v15 Angular component with Material dependenc
 
 **Key constraint**: Cannot use ShadowDOM encapsulation because Material overlays break with Shadow boundaries.
 
+When building new versions of existing components, when considering a new way of implementing it, make sure to add it as a separate component and leave the code wired in to enable comparison of approaches directly and switch between them or view them simulataneously.
+
 ### Step 1: Create Dedicated Build Project
 
 Create a new application project for components that will be bundled:

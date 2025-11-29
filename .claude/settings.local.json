@@ -9,7 +9,8 @@
       "Bash(pnpm install)",
       "WebSearch",
       "Bash(git -C /mnt/d/dev/_ws/ng-15-20-compat diff HEAD)",
-      "WebFetch(domain:www.angulararchitects.io)"
+      "WebFetch(domain:www.angulararchitects.io)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
