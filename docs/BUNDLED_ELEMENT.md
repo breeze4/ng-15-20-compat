@@ -79,7 +79,9 @@ pnpm add @angular/material@^15.2.0 @angular/cdk@^15.2.0
 
 **Build:** Uses `@nx/angular:webpack-browser` (Nx), not `ngx-build-plus` (Angular CLI).
 
-**Zone.js:** Bundle uses 0.12.0. `settings-v20` uses 0.15.1. `profile-v20` is zoneless. Test coexistence in settings-v20.
+**Zone.js:** Bundle uses 0.12.0. `settings-v20` uses 0.15.1. `profile-v20` is zoneless.
+- Zone.js does not support multiple instances - first loaded wins globally
+- Risk: Patching zoneless host breaks native API assumptions. Test thoroughly.
 
 ### Step 1: Create Bundle Project
 
@@ -145,9 +147,23 @@ module.exports = (config) => {
     chunkFilename: 'main.js'
   };
   if (config.entry.polyfills) {
-    config.entry.main = [...config.entry.polyfills, ...config.entry.main];
+    const polyfills = Array.isArray(config.entry.polyfills) ? config.entry.polyfills : [config.entry.polyfills];
+    config.entry.main = [...polyfills, ...config.entry.main];
     delete config.entry.polyfills;
   }
+
+  // Force CSS inline - critical for single-file bundle
+  config.module.rules.forEach(rule => {
+    if (rule.use && Array.isArray(rule.use)) {
+      rule.use = rule.use.map(loader => {
+        if (typeof loader === 'object' && loader.loader?.includes('MiniCssExtractPlugin')) {
+          return { loader: 'style-loader' };
+        }
+        return loader;
+      });
+    }
+  });
+
   return config;
 };
 ```
@@ -158,6 +174,7 @@ module.exports = (config) => {
 
 ```scss
 @use '@angular/material' as mat;
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 $v15-primary: mat.define-palette(mat.$indigo-palette);
 $v15-accent: mat.define-palette(mat.$pink-palette);
@@ -193,54 +210,117 @@ export class ScopedOverlayContainer extends OverlayContainer {
 
 ### Step 5: Create Bundled Component
 
+Test complex Material features: overlays (Dialog/Select/DatePicker/Autocomplete/Tooltip), data rendering (Table/Paginator/Sort), global services (Snackbar).
+
 `apps/shared-ui-v15-bundle/src/app/zone-scenario-3b-bundled.component.ts`:
 
 ```typescript
 import { Component, ViewEncapsulation, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-zone-scenario-3b-bundled',
   standalone: true,
-  imports: [MatSelectModule, MatDatepickerModule, MatNativeDateModule, MatButtonModule, MatFormFieldModule, MatInputModule],
-  encapsulation: ViewEncapsulation.Emulated, // Required for Material overlays
+  imports: [
+    CommonModule, ReactiveFormsModule,
+    MatSelectModule, MatDatepickerModule, MatNativeDateModule, MatButtonModule,
+    MatFormFieldModule, MatInputModule, MatAutocompleteModule, MatTooltipModule,
+    MatDialogModule, MatSnackBarModule, MatTableModule, MatPaginatorModule, MatSortModule
+  ],
+  encapsulation: ViewEncapsulation.Emulated,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="v15-legacy-root">
-      <h3>v15 Bundled Component with Material</h3>
+      <h3>v15 Material Bundle Test</h3>
+
+      <!-- Overlay: Select -->
       <mat-form-field>
-        <mat-label>Select Option</mat-label>
+        <mat-label>Select</mat-label>
         <mat-select [(value)]="selectedValue">
-          <mat-option value="option1">Option 1</mat-option>
-          <mat-option value="option2">Option 2</mat-option>
+          <mat-option value="opt1">Option 1</mat-option>
+          <mat-option value="opt2">Option 2</mat-option>
         </mat-select>
       </mat-form-field>
+
+      <!-- Overlay: DatePicker -->
       <mat-form-field>
-        <mat-label>Choose Date</mat-label>
+        <mat-label>Date</mat-label>
         <input matInput [matDatepicker]="picker">
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
       </mat-form-field>
+
+      <!-- Overlay: Autocomplete (filtered) -->
+      <mat-form-field>
+        <mat-label>Autocomplete</mat-label>
+        <input matInput [formControl]="autoControl" [matAutocomplete]="auto">
+        <mat-autocomplete #auto="matAutocomplete">
+          <mat-option *ngFor="let opt of filteredOptions" [value]="opt">{{opt}}</mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+      <!-- Overlay: Tooltip -->
+      <button mat-button matTooltip="v15 tooltip">Hover Tooltip</button>
+
+      <!-- Overlay: Dialog -->
       <button mat-raised-button (click)="openDialog()">Open Dialog</button>
-      <p>Lazy counter: {{lazyCount}}</p>
+
+      <!-- Global Service: Snackbar -->
+      <button mat-button (click)="openSnackbar()">Snackbar</button>
+
+      <!-- Data Rendering: Table with Sort/Paginator -->
+      <table mat-table [dataSource]="tableData" matSort>
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+          <td mat-cell *matCellDef="let row">{{row.id}}</td>
+        </ng-container>
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <td mat-cell *matCellDef="let row">{{row.name}}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="['id', 'name']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['id', 'name']"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[5, 10]" showFirstLastButtons></mat-paginator>
+
+      <!-- Zone test -->
+      <p>Counter: {{lazyCount}}</p>
       <button mat-button (click)="startLazy()">Start Lazy</button>
     </div>
   `
 })
 export class ZoneScenario3bBundledComponent {
-  selectedValue = 'option1';
+  selectedValue = 'opt1';
   lazyCount = 0;
+  autoControl = new FormControl('');
+  filteredOptions = ['Apple', 'Banana', 'Cherry'];
+  tableData = [{id: 1, name: 'Item 1'}, {id: 2, name: 'Item 2'}];
   @Output() lazyComplete = new EventEmitter<number>();
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog, private snackBar: MatSnackBar) {
+    this.autoControl.valueChanges.subscribe(val => {
+      this.filteredOptions = ['Apple', 'Banana', 'Cherry'].filter(o =>
+        o.toLowerCase().includes((val || '').toLowerCase())
+      );
+    });
+  }
 
   openDialog() { this.dialog.open(ExampleDialogComponent); }
+  openSnackbar() { this.snackBar.open('v15 Snackbar', 'Close', {duration: 3000}); }
 
   startLazy() {
     setTimeout(() => {
@@ -253,10 +333,21 @@ export class ZoneScenario3bBundledComponent {
 @Component({
   selector: 'app-example-dialog',
   standalone: true,
-  template: '<h2>Dialog from v15 Bundle</h2><p>Overlay styled correctly</p>'
+  imports: [MatDialogModule, MatButtonModule],
+  template: `
+    <h2>v15 Dialog</h2>
+    <p>Tests overlay scoping</p>
+    <button mat-button mat-dialog-close>Close</button>
+  `
 })
 export class ExampleDialogComponent {}
 ```
+
+**Components tested:**
+- **Overlays:** Dialog, Select, DatePicker, Autocomplete, Tooltip (all use CDK Overlay)
+- **Global Services:** Snackbar (uses global overlay container)
+- **Complex Rendering:** Table with Sort/Paginator (tests large DOM updates)
+- **Form Controls:** Autocomplete filtering (tests reactive forms + Zone.js)
 
 ### Step 6: Bootstrap
 
@@ -289,7 +380,8 @@ import './theme.scss';
 ```bash
 cd main
 nx build shared-ui-v15-bundle --configuration=production
-# Outputs: dist/apps/shared-ui-v15-bundle/main.js
+# Verify: dist/apps/shared-ui-v15-bundle should contain ONLY main.js (no styles.css)
+ls dist/apps/shared-ui-v15-bundle
 ```
 
 ### Step 8: Publish and Consume
@@ -305,6 +397,8 @@ nx build shared-ui-v15-bundle --configuration=production
   "publishConfig": { "registry": "http://0.0.0.0:4873" }
 }
 ```
+
+**Critical:** Do NOT add `dependencies` or `peerDependencies`. Angular v15 is bundled in main.js. Adding deps here causes v20 host to install conflicting Angular versions.
 
 Add to `apps/shared-ui-v15-bundle/project.json`:
 
@@ -333,11 +427,13 @@ Add to `main/package.json`:
 }
 ```
 
-Publish:
+Build and publish:
 
 ```bash
 cd main
-pnpm build:bundle && pnpm publish:bundle
+pnpm build:bundle
+# Optional: Version filename for cache busting (mv main.js main.v0.0.1.js, update package.json "main")
+pnpm publish:bundle
 ```
 
 Install in v20:
@@ -409,15 +505,21 @@ cd externals/profile-v20 && pnpm start
 ```
 
 **Test:**
-- Material overlays open and styled correctly
-- Overlays have `.v15-legacy-root` class
-- Lazy counter updates (Zone.js working)
-- Host receives events
-- No Zone.js conflicts
-- No style conflicts
+- Bundle loads before host renders (no flash of undefined element)
+- All Material overlays open and styled: Dialog, Select, DatePicker, Autocomplete, Tooltip, Snackbar
+- Overlays have `.v15-legacy-root` class (inspect in DevTools)
+- Material icons render correctly (not blank squares)
+- Table sorting/pagination works
+- Autocomplete filtering works (reactive forms + Zone.js)
+- Lazy counter updates (Zone.js change detection)
+- Host receives `event.detail` from bundled component
+- No Zone.js console errors
+- No style leakage (v15 styles don't bleed into v20 host)
+- Network tab shows only main.js (no separate styles.css)
 
 **Debug:**
-- Overlay styles wrong: Check `ScopedOverlayContainer` adds class, verify `theme.scss` scoping
-- Zone conflict: Verify v20 loads before bundle
-- Async not updating: Check `window.Zone`, use ViewEncapsulation.Emulated
-- Overlays invisible: Check z-index conflicts
+- **No styles:** CSS not inlined. Check webpack style-loader config.
+- **Icons missing:** Material Icons font not loaded. Check theme.scss.
+- **Overlays unstyled:** Check `ScopedOverlayContainer`, verify `.v15-legacy-root` in theme.
+- **Zone conflict:** Check console. If zoneless host affected, Zone.js globally patched APIs.
+- **Table/forms broken:** Check reactive forms imports, verify Zone triggers change detection.
