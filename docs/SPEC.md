@@ -228,6 +228,78 @@ All wrapped components use:
 - Zone.js dependency is visible (Scenario 3b)
 - Same component code works in both zoned and zoneless hosts (with caveats)
 
+## Bundled Element Architecture
+
+For components that cannot be made v20-compatible through standard wrapping (due to Zone.js incompatibility, JIT compilation requirements, or incompatible DI systems), use the bundled element pattern.
+
+### Concept
+
+Bundle the v15 component with its entire Angular runtime into a single JavaScript file. The v20 host treats it as a generic custom element, not an Angular component.
+
+### Distribution Strategy
+
+**Primary Method: npm Package Publishing**
+
+Following the existing `@myorg/shared` workflow:
+
+1. Build bundle in `main/` workspace (Angular 15, TypeScript 4.9)
+2. Package as `@myorg/shared-ui-v15-bundle`
+3. Publish to local registry at `http://0.0.0.0:4873`
+4. v20 apps install as npm dependency
+5. Angular build copies bundle from `node_modules/` to assets
+6. Load via `<script>` tag in index.html
+
+**Why npm packages?**
+- ✅ Leverages existing local registry infrastructure
+- ✅ No cross-monorepo file dependencies
+- ✅ Versioned and cacheable
+- ✅ Works reliably in CI/CD
+- ✅ Angular dev server handles node_modules assets correctly
+
+**Alternative: Direct asset copying** (not recommended - no build orchestration, dev server won't watch cross-monorepo files, fragile in CI/CD)
+
+### Build Configuration
+
+**Nx Executor**: Use `@nx/angular:webpack-browser` with custom webpack config (not `ngx-build-plus`, which is designed for Angular CLI workspaces)
+
+**Single Bundle Output**: Custom webpack config disables code splitting and inlines all chunks into `main.js`
+
+**Component Versioning**: Create NEW components for bundling (e.g., `ZoneScenario3bBundledComponent`) rather than modifying existing ones - preserves originals for comparison
+
+### Zone.js Handling
+
+**Version Compatibility Risk**:
+- Bundle uses Zone.js 0.12.0 (Angular 15)
+- `settings-v20` uses Zone.js 0.15.1 (Angular 20)
+- `profile-v20` is zoneless (no Zone.js)
+- **Untested**: Coexistence of Zone.js 0.12.0 and 0.15.1 in same runtime
+
+**Bootstrap Strategy**: Check `window.Zone` before loading - if present, reuse host's Zone.js instance
+
+### TypeScript Version Handling
+
+**Not a Problem**: Bundle builds with TS 4.9.0 (required by Angular 15), outputs JavaScript. Consuming v20 apps use TS 5.8.0 but load bundle via `<script>` tag (no TypeScript compilation of bundle).
+
+### Material Components
+
+**Encapsulation Constraint**: Must use `ViewEncapsulation.Emulated`, NOT `ShadowDom` - Material overlays break with Shadow boundaries
+
+**Style Scoping**: All Material styles scoped inside `.v15-legacy-root` class to prevent conflicts with v20 host theme
+
+**Overlay Container**: Custom `ScopedOverlayContainer` applies `.v15-legacy-root` to overlay containers so dialogs/menus inherit scoped theme
+
+### Communication Pattern
+
+Same as standard Web Components:
+- **Inputs**: HTML attributes/properties
+- **Outputs**: CustomEvent dispatches (not Angular EventEmitter)
+- **No shared DI**: Bundle has isolated injector
+- **No shared Router**: Each runtime manages own routing
+
+### Implementation Details
+
+See [BUNDLED_ELEMENT.md](./BUNDLED_ELEMENT.md) for complete implementation guide.
+
 ## Migration Pattern (v14/15 → v20 Ready)
 
 1. Add `standalone: true` with explicit imports

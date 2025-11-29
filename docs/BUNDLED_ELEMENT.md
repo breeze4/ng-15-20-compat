@@ -85,6 +85,42 @@ This guide demonstrates bundling a v15 Angular component with Material dependenc
 
 When building new versions of existing components, when considering a new way of implementing it, make sure to add it as a separate component and leave the code wired in to enable comparison of approaches directly and switch between them or view them simulataneously.
 
+### Prerequisites
+
+Before implementing the bundled element architecture, ensure your environment meets these requirements:
+
+**Workspace Structure:**
+- `main/` - Nx monorepo with Angular 15 (TypeScript 4.9.0)
+- `externals/` - Independent Angular CLI projects with Angular 20 (TypeScript 5.8.0)
+- Local npm registry running at `http://0.0.0.0:4873` (for package distribution)
+
+**Required Dependencies (NOT currently installed in main/):**
+
+```bash
+cd main
+pnpm add -D @nx/angular          # Nx Angular plugin for webpack executor
+pnpm add @angular/material@^15.2.0 @angular/cdk@^15.2.0
+```
+
+**Note on Build Tools:**
+- This guide originally referenced `ngx-build-plus`, which is designed for Angular CLI workspaces with `angular.json`
+- The current codebase uses **Nx** with `project.json` format
+- We use `@nx/angular:webpack-browser` executor instead (Nx's official webpack customization)
+- The `angular.json` examples below are provided for reference; actual implementation uses `project.json`
+
+**Zone.js Version Compatibility:**
+- Bundle will use Zone.js 0.12.0 (Angular 15 standard)
+- `settings-v20` uses Zone.js 0.15.1 (Angular 20 standard)
+- `profile-v20` is zoneless (no Zone.js)
+- **Risk**: Untested coexistence of Zone.js 0.12.0 and 0.15.1 in settings-v20
+- **Recommendation**: Test thoroughly in settings-v20 environment
+
+**TypeScript Version Split:**
+- Bundle builds with TypeScript 4.9.0 (required by Angular 15)
+- Consuming apps use TypeScript 5.8.0
+- **This is not a problem**: Bundle outputs JavaScript, no TS version dependency at runtime
+- Consuming apps load via `<script>` tag, not TypeScript imports
+
 ### Step 1: Create Dedicated Build Project
 
 Create a new application project for components that will be bundled:
@@ -104,7 +140,81 @@ pnpm add @angular/material@^15.0.0 @angular/cdk@^15.0.0
 
 ### Step 2: Configure Bundle Builder
 
-Update `angular.json` for the `shared-ui-v15` project:
+**For Nx Workspaces (Recommended for current codebase):**
+
+Create `apps/shared-ui-v15-bundle/project.json`:
+
+```json
+{
+  "name": "shared-ui-v15-bundle",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/shared-ui-v15-bundle/src",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:webpack-browser",
+      "options": {
+        "outputPath": "dist/apps/shared-ui-v15-bundle",
+        "index": false,
+        "main": "apps/shared-ui-v15-bundle/src/main.element.ts",
+        "tsConfig": "apps/shared-ui-v15-bundle/tsconfig.app.json",
+        "polyfills": ["zone.js"],
+        "scripts": [],
+        "styles": ["apps/shared-ui-v15-bundle/src/theme.scss"],
+        "customWebpackConfig": {
+          "path": "apps/shared-ui-v15-bundle/webpack.config.js"
+        }
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "outputHashing": "none",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": false,
+          "vendorChunk": false,
+          "buildOptimizer": true
+        }
+      }
+    }
+  }
+}
+```
+
+Create `apps/shared-ui-v15-bundle/webpack.config.js`:
+
+```javascript
+module.exports = (config, options) => {
+  // Disable code splitting - create single bundle
+  config.optimization = {
+    ...config.optimization,
+    runtimeChunk: false,
+    splitChunks: false
+  };
+
+  // Force single output file
+  config.output = {
+    ...config.output,
+    filename: 'main.js',
+    chunkFilename: 'main.js'
+  };
+
+  // Inline polyfills into main bundle
+  if (config.entry.polyfills) {
+    config.entry.main = [
+      ...config.entry.polyfills,
+      ...config.entry.main
+    ];
+    delete config.entry.polyfills;
+  }
+
+  return config;
+};
+```
+
+**For Angular CLI Workspaces (Reference only):**
+
+If using pure Angular CLI with `angular.json` (not applicable to current codebase):
 
 ```json
 {
@@ -128,7 +238,7 @@ Update `angular.json` for the `shared-ui-v15` project:
 }
 ```
 
-Create `apps/shared-ui-v15/webpack.config.js`:
+With `webpack.config.js`:
 
 ```javascript
 module.exports = {
@@ -142,7 +252,7 @@ module.exports = {
 
 ### Step 3: Material Theme Configuration
 
-Create `apps/shared-ui-v15/src/theme.scss`:
+Create `apps/shared-ui-v15-bundle/src/theme.scss`:
 
 ```scss
 @use '@angular/material' as mat;
@@ -175,7 +285,7 @@ $v15-theme: mat.define-light-theme((
 
 Material components (Dialog, Select, DatePicker) render overlays outside the component DOM tree. Create a custom overlay container to scope these:
 
-Create `apps/shared-ui-v15/src/scoped-overlay-container.ts`:
+Create `apps/shared-ui-v15-bundle/src/scoped-overlay-container.ts`:
 
 ```typescript
 import { OverlayContainer } from '@angular/cdk/overlay';
@@ -194,51 +304,11 @@ export class ScopedOverlayContainer extends OverlayContainer {
 }
 ```
 
-### Step 5: Create Zone-Safe Bootstrap
+### Step 5: Create New Bundled Component
 
-Create `apps/shared-ui-v15/src/main.element.ts`:
+**IMPORTANT**: Create a NEW component for bundling. Do NOT modify the existing `ZoneScenario3bComponent` in the shared library - keep it for comparison.
 
-```typescript
-import { createCustomElement } from '@angular/elements';
-import { createApplication } from '@angular/platform-browser';
-import { OverlayContainer } from '@angular/cdk/overlay';
-import { ScopedOverlayContainer } from './scoped-overlay-container';
-import { ZoneScenario3bComponent } from './app/zone-scenario-3b.component';
-
-// Import theme (will be bundled)
-import './theme.scss';
-
-/**
- * Self-bootstrapping entry point for bundled v15 component
- * - Checks for existing Zone.js before loading
- * - Creates isolated Angular runtime
- * - Registers custom element
- */
-(async () => {
-  // 1. Conditional Zone Loading - prevents conflicts with v20 host
-  if (!(window as any).Zone) {
-    await import('zone.js');
-  }
-
-  // 2. Bootstrap internal v15 runtime
-  const app = await createApplication({
-    providers: [
-      // Use scoped overlay container for Material
-      { provide: OverlayContainer, useClass: ScopedOverlayContainer }
-    ]
-  });
-
-  // 3. Register custom element
-  const element = createCustomElement(ZoneScenario3bComponent, {
-    injector: app.injector
-  });
-  customElements.define('zone-scenario-3b-v15', element);
-})();
-```
-
-### Step 6: Configure Component for Isolation
-
-Update `ZoneScenario3bComponent`:
+Create `apps/shared-ui-v15-bundle/src/app/zone-scenario-3b-bundled.component.ts`:
 
 ```typescript
 import { Component, ViewEncapsulation, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
@@ -247,15 +317,19 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
-  selector: 'app-zone-scenario-3b',
+  selector: 'app-zone-scenario-3b-bundled',
   standalone: true,
   imports: [
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatButtonModule
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   // CRITICAL: Use Emulated, NOT ShadowDom (Material overlays break)
   encapsulation: ViewEncapsulation.Emulated,
@@ -291,7 +365,7 @@ import { MatButtonModule } from '@angular/material/button';
     </div>
   `
 })
-export class ZoneScenario3bComponent {
+export class ZoneScenario3bBundledComponent {
   selectedValue = 'option1';
   lazyCount = 0;
 
@@ -320,12 +394,56 @@ export class ZoneScenario3bComponent {
 export class ExampleDialogComponent {}
 ```
 
+### Step 6: Create Zone-Safe Bootstrap
+
+Create `apps/shared-ui-v15-bundle/src/main.element.ts`:
+
+```typescript
+import { createCustomElement } from '@angular/elements';
+import { createApplication } from '@angular/platform-browser';
+import { OverlayContainer } from '@angular/cdk/overlay';
+import { ScopedOverlayContainer } from './scoped-overlay-container';
+import { ZoneScenario3bBundledComponent } from './app/zone-scenario-3b-bundled.component';
+
+// Import theme (will be bundled)
+import './theme.scss';
+
+/**
+ * Self-bootstrapping entry point for bundled v15 component
+ * - Checks for existing Zone.js before loading
+ * - Creates isolated Angular runtime
+ * - Registers custom element
+ */
+(async () => {
+  // 1. Conditional Zone Loading - prevents conflicts with v20 host
+  if (!(window as any).Zone) {
+    await import('zone.js');
+  }
+
+  // 2. Bootstrap internal v15 runtime
+  const app = await createApplication({
+    providers: [
+      // Use scoped overlay container for Material
+      { provide: OverlayContainer, useClass: ScopedOverlayContainer }
+    ]
+  });
+
+  // 3. Register custom element
+  const element = createCustomElement(ZoneScenario3bBundledComponent, {
+    injector: app.injector
+  });
+  customElements.define('zone-scenario-3b-v15-bundled', element);
+})();
+```
+
+**Note**: The custom element tag is `zone-scenario-3b-v15-bundled` to distinguish it from any existing elements.
+
 ### Step 7: Build the Bundle
 
 ```bash
 cd main
-nx build shared-ui-v15
-# Outputs: dist/shared-ui-v15/main.js
+nx build shared-ui-v15-bundle --configuration=production
+# Outputs: dist/apps/shared-ui-v15-bundle/main.js
 ```
 
 Verify bundle contains:
@@ -335,9 +453,82 @@ Verify bundle contains:
 - Component code
 - Scoped overlay container
 
-### Step 8: Consume in v20 Host
+### Step 8: Publish and Consume Bundle
 
-**Option A: Copy to assets**
+**Option A: npm Package Distribution (RECOMMENDED)**
+
+This approach aligns with the existing `@myorg/shared` library workflow and avoids cross-monorepo file dependencies.
+
+**1. Create package.json for the bundle:**
+
+Create `apps/shared-ui-v15-bundle/package.json`:
+
+```json
+{
+  "name": "@myorg/shared-ui-v15-bundle",
+  "version": "0.0.1",
+  "description": "Bundled v15 Angular Elements for v20 host consumption",
+  "main": "./main.js",
+  "files": [
+    "main.js"
+  ],
+  "publishConfig": {
+    "registry": "http://0.0.0.0:4873"
+  }
+}
+```
+
+**2. Configure Nx to copy package.json:**
+
+Update `apps/shared-ui-v15-bundle/project.json` to include package.json in build output:
+
+```json
+{
+  "targets": {
+    "build": {
+      "options": {
+        "assets": [
+          {
+            "glob": "package.json",
+            "input": "apps/shared-ui-v15-bundle",
+            "output": "."
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+**3. Add publish script:**
+
+In `main/package.json`, add:
+
+```json
+{
+  "scripts": {
+    "build:bundle": "nx build shared-ui-v15-bundle --configuration=production",
+    "publish:bundle": "cd dist/apps/shared-ui-v15-bundle && pnpm publish --no-git-checks"
+  }
+}
+```
+
+**4. Build and publish:**
+
+```bash
+cd main
+pnpm build:bundle
+pnpm publish:bundle
+```
+
+**5. Install in v20 apps:**
+
+```bash
+cd externals/profile-v20
+pnpm add @myorg/shared-ui-v15-bundle@0.0.1
+```
+
+**6. Configure asset copying from node_modules:**
 
 Update `externals/profile-v20/angular.json`:
 
@@ -351,7 +542,7 @@ Update `externals/profile-v20/angular.json`:
             "assets": [
               {
                 "glob": "main.js",
-                "input": "../../main/dist/shared-ui-v15",
+                "input": "node_modules/@myorg/shared-ui-v15-bundle",
                 "output": "assets/legacy/"
               }
             ]
@@ -363,11 +554,38 @@ Update `externals/profile-v20/angular.json`:
 }
 ```
 
-**Option B: Load from local registry**
+**Why this approach?**
+- ✅ Leverages existing local registry infrastructure
+- ✅ No cross-monorepo file dependencies
+- ✅ Versioned and cacheable
+- ✅ Works reliably in CI/CD
+- ✅ Angular dev server handles node_modules assets correctly
 
-Publish bundle as npm package and load from `node_modules`.
+**Option B: Direct Asset Copy (NOT RECOMMENDED)**
 
-**Load the script** in `externals/profile-v20/src/index.html`:
+Only use if npm registry is unavailable. This approach has limitations:
+
+```json
+{
+  "assets": [
+    {
+      "glob": "main.js",
+      "input": "../../main/dist/apps/shared-ui-v15-bundle",
+      "output": "assets/legacy/"
+    }
+  ]
+}
+```
+
+**Limitations:**
+- ❌ No build orchestration - must manually build main/ before externals/
+- ❌ Dev server won't watch cross-monorepo files
+- ❌ Fragile in CI/CD pipelines
+- ❌ No versioning
+
+### Step 9: Load Bundle in v20 Host
+
+**1. Load the script** in `externals/profile-v20/src/index.html`:
 
 ```html
 <!doctype html>
@@ -380,13 +598,13 @@ Publish bundle as npm package and load from `node_modules`.
 <body>
   <app-root></app-root>
 
-  <!-- Load v15 bundle - defines <zone-scenario-3b-v15> -->
+  <!-- Load v15 bundle - defines <zone-scenario-3b-v15-bundled> -->
   <script src="assets/legacy/main.js"></script>
 </body>
 </html>
 ```
 
-**Use in component** - `externals/profile-v20/src/app/app.component.ts`:
+**2. Use in component** - `externals/profile-v20/src/app/app.component.ts`:
 
 ```typescript
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -399,9 +617,9 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
     <h1>v20 Host (Zoneless)</h1>
 
     <!-- v15 bundled component -->
-    <zone-scenario-3b-v15
+    <zone-scenario-3b-v15-bundled
       (lazyComplete)="onLazyComplete($event)">
-    </zone-scenario-3b-v15>
+    </zone-scenario-3b-v15-bundled>
 
     <p>Host received lazy event: {{receivedValue}}</p>
   `
@@ -409,13 +627,16 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 export class AppComponent {
   receivedValue = 0;
 
-  onLazyComplete(value: number) {
-    this.receivedValue = value;
+  onLazyComplete(event: CustomEvent<number>) {
+    // CustomEvent.detail contains the emitted value
+    this.receivedValue = event.detail;
   }
 }
 ```
 
-### Step 9: Verify Success
+**Note**: Since the bundled component emits standard CustomEvents, access the value via `event.detail` rather than expecting Angular's EventEmitter format.
+
+### Step 10: Verify Success
 
 **Start v20 host:**
 ```bash

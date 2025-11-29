@@ -10,7 +10,9 @@
       "WebSearch",
       "Bash(git -C /mnt/d/dev/_ws/ng-15-20-compat diff HEAD)",
       "WebFetch(domain:www.angulararchitects.io)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npx nx show project:*)",
+      "Bash(npx nx:*)"
     ],
     "deny": [],
     "ask": []
