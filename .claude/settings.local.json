@@ -8,7 +8,8 @@
       "Bash(/mnt/d/dev/_ws/ng-15-20-compat/externals/profile-v20/.npmrc)",
       "Bash(pnpm install)",
       "WebSearch",
-      "Bash(git -C /mnt/d/dev/_ws/ng-15-20-compat diff HEAD)"
+      "Bash(git -C /mnt/d/dev/_ws/ng-15-20-compat diff HEAD)",
+      "WebFetch(domain:www.angulararchitects.io)"
     ],
     "deny": [],
     "ask": []
