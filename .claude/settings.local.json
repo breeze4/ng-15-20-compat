@@ -13,7 +13,12 @@
       "Bash(cat:*)",
       "Bash(npx nx show project:*)",
       "Bash(npx nx:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(npm ls:*)",
+      "Bash(pnpm ls:*)",
+      "Bash(git log:*)",
+      "WebFetch(domain:angular.dev)",
+      "WebFetch(domain:stackoverflow.com)"
     ],
     "deny": [],
     "ask": []

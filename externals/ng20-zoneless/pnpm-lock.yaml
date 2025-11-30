@@ -30,8 +30,8 @@ dependencies:
     specifier: ^20.0.0
     version: 20.3.14(@angular/common@20.3.14)(@angular/core@20.3.14)(@angular/platform-browser@20.3.14)(rxjs@7.8.2)
   '@myorg/shared':
-    specifier: ^0.0.6
-    version: 0.0.6(@angular/core@20.3.14)(@angular/elements@20.3.14)
+    specifier: ^0.0.7
+    version: 0.0.7(@angular/core@20.3.14)(@angular/elements@20.3.14)
   rxjs:
     specifier: ~7.8.0
     version: 7.8.2
@@ -2466,8 +2466,8 @@ packages:
     dev: true
     optional: true
 
-  /@myorg/shared@0.0.6(@angular/core@20.3.14)(@angular/elements@20.3.14):
-    resolution: {integrity: sha512-lNfEy8U7R3+2ya3SIvgJP85v3ClMdXdgmVav+h2gxylqfdE7AexxCjpkjulqPUWY6AmZz11ewQ9vELRxYKuuSg==}
+  /@myorg/shared@0.0.7(@angular/core@20.3.14)(@angular/elements@20.3.14):
+    resolution: {integrity: sha512-krhMQg/GyQGLZZwkztgUe7WoKPGRGI3n0lFFo7AodzblTznSyZMk0SVFP0T73a5ExWlcYUdE+6unxW5u8VY5SA==}
     peerDependencies:
       '@angular/core': ^15.0.0 || ^19.0.0 || ^20.0.0
       '@angular/elements': ^15.0.0 || ^19.0.0 || ^20.0.0

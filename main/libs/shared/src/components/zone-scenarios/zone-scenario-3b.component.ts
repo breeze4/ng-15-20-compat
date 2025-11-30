@@ -5,6 +5,7 @@ import {
   ChangeDetectionStrategy,
   ViewEncapsulation,
   ChangeDetectorRef,
+  Inject,
 } from '@angular/core';
 
 /**
@@ -65,7 +66,7 @@ export class ZoneScenario3bComponent {
 
   counter = 0;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(@Inject(ChangeDetectorRef) private cdr: ChangeDetectorRef) {}
 
   startAsync(): void {
     setTimeout(() => {
