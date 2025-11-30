@@ -32,6 +32,8 @@ import {
     h3 {
       margin: 0 0 0.5rem 0;
       font-size: 1rem;
+      color: #333;
+      font-weight: 600;
     }
     button {
       padding: 0.5rem 1rem;

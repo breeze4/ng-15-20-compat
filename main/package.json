@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "build": "nx run-many -t build",
-    "build:host": "nx build host-v15",
+    "build:ng15": "nx build ng15-zone",
     "build:shared": "nx build shared",
     "publish:shared": "cd dist/libs/shared && pnpm publish --no-git-checks",
-    "serve:host": "nx serve host-v15"
+    "serve:ng15": "nx serve ng15-zone"
   },
   "dependencies": {
     "@angular/core": "^15.2.0",

@@ -1,0 +1,52 @@
+{
+  "name": "ng15-zone",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/ng15-zone/src",
+  "prefix": "app",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:browser",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/ng15-zone",
+        "index": "apps/ng15-zone/src/index.html",
+        "main": "apps/ng15-zone/src/main.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "apps/ng15-zone/tsconfig.app.json",
+        "assets": [],
+        "styles": ["apps/ng15-zone/src/styles.css"],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "500kb", "maximumError": "1mb" }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "configurations": {
+        "production": { "browserTarget": "ng15-zone:build:production" },
+        "development": { "browserTarget": "ng15-zone:build:development" }
+      },
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4200,
+        "proxyConfig": "apps/ng15-zone/proxy.conf.json"
+      }
+    }
+  },
+  "tags": []
+}

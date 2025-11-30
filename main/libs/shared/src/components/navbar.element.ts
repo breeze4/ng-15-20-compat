@@ -39,40 +39,24 @@ export class NavbarElement extends HTMLElement {
     }
 
     render(): void {
-        const currentRoute = this.getAttribute('current-route') || '/overview';
-        const appId = this.getAttribute('app-id') || 'host';
+        const currentRoute = this.getAttribute('current-route') || '/zones';
+        const appId = this.getAttribute('app-id') || 'ng15-zone';
 
-        // Define routes for each app section
-        const dashboardRoutes = [
-            { path: '/overview', label: 'Overview' },
-            { path: '/analytics', label: 'Analytics' },
-            { path: '/reports', label: 'Reports' }
+        // Define routes - same for all apps
+        const testRoutes = [
+            { path: '/zones', label: 'Zones' },
+            { path: '/material', label: 'Material' }
         ];
 
-        const settingsRoutes = [
-            { path: '/general', label: 'General' },
-            { path: '/security', label: 'Security' },
-            { path: '/notifications', label: 'Notifications' }
-        ];
-
-        const profileRoutes = [
-            { path: '/overview', label: 'Overview' },
-            { path: '/preferences', label: 'Preferences' },
-            { path: '/activity', label: 'Activity' }
-        ];
-
-        // Get current app's routes
-        let routes: { path: string; label: string }[] = [];
+        // Get current app's label
+        let routes: { path: string; label: string }[] = testRoutes;
         let appLabel = '';
-        if (appId === 'host') {
-            routes = dashboardRoutes;
-            appLabel = 'Dashboard';
-        } else if (appId === 'settings') {
-            routes = settingsRoutes;
-            appLabel = 'Settings';
-        } else if (appId === 'profile') {
-            routes = profileRoutes;
-            appLabel = 'Profile';
+        if (appId === 'ng15-zone') {
+            appLabel = 'Ng15+Zone';
+        } else if (appId === 'ng20-zone') {
+            appLabel = 'Ng20+Zone';
+        } else if (appId === 'ng20-zoneless') {
+            appLabel = 'Ng20 Zoneless';
         }
 
         const routeButtons = routes.map(r => `
@@ -136,14 +120,14 @@ export class NavbarElement extends HTMLElement {
                 <span class="app-label">${appLabel}</span>
                 ${routeButtons}
                 <div class="separator"></div>
-                <a class="app-link ${appId === 'host' ? 'current-app' : ''}" href="/">
-                    Dashboard
+                <a class="app-link ${appId === 'ng15-zone' ? 'current-app' : ''}" href="/">
+                    Ng15+Zone
                 </a>
-                <a class="app-link ${appId === 'settings' ? 'current-app' : ''}" href="/settings/">
-                    Settings
+                <a class="app-link ${appId === 'ng20-zone' ? 'current-app' : ''}" href="/settings/">
+                    Ng20+Zone
                 </a>
-                <a class="app-link ${appId === 'profile' ? 'current-app' : ''}" href="/profile/">
-                    Profile
+                <a class="app-link ${appId === 'ng20-zoneless' ? 'current-app' : ''}" href="/profile/">
+                    Ng20 Zoneless
                 </a>
             </nav>
         `;
