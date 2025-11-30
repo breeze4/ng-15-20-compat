@@ -9,7 +9,7 @@ Nx workspace with Angular 15 host application and shared component library.
 
 ## Prerequisites
 
-Local npm registry running at `http://0.0.0.0:4873` (e.g., Verdaccio)
+Local npm registry running at `http://localhost:4873` (e.g., Verdaccio)
 
 ## Development
 

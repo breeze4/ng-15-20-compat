@@ -28,7 +28,7 @@ Each area is self-contained. Run pnpm commands from `main/` or `externals/<app>/
 ### Build System
 - **pnpm** for package management
 - **Nx** for build orchestration and caching
-- Shared library published to local npm registry at `http://0.0.0.0:4873`
+- Shared library published to local npm registry at `http://localhost:4873`
 
 ### App Structure
 ```
@@ -244,7 +244,7 @@ Following the existing `@myorg/shared` workflow:
 
 1. Build bundle in `main/` workspace (Angular 15, TypeScript 4.9)
 2. Package as `@myorg/shared-ui-v15-bundle`
-3. Publish to local registry at `http://0.0.0.0:4873`
+3. Publish to local registry at `http://localhost:4873`
 4. v20 apps install as npm dependency
 5. Angular build copies bundle from `node_modules/` to assets
 6. Load via `<script>` tag in index.html

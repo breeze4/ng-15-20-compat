@@ -12,7 +12,8 @@
       "WebFetch(domain:www.angulararchitects.io)",
       "Bash(cat:*)",
       "Bash(npx nx show project:*)",
-      "Bash(npx nx:*)"
+      "Bash(npx nx:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []

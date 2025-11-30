@@ -4,6 +4,7 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   ViewEncapsulation,
+  ChangeDetectorRef,
 } from '@angular/core';
 
 /**
@@ -23,8 +24,9 @@ import {
     <div class="scenario">
       <h3>Scenario 3b: Zone-Dependent Async</h3>
       <button (click)="startAsync()">Start Lazy Async</button>
+      <button (click)="forceUpdate()">Force Update</button>
       <p>Counter (internal): <strong>{{ counter }}</strong></p>
-      <p class="note">In zoneless: display freezes, but events still fire</p>
+      <p class="note">In zoneless: display freezes, but events still fire. Click "Force Update" to see actual value.</p>
     </div>
   `,
   styles: [`
@@ -61,6 +63,8 @@ export class ZoneScenario3bComponent {
 
   counter = 0;
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   startAsync(): void {
     setTimeout(() => {
       this.counter++;
@@ -68,5 +72,10 @@ export class ZoneScenario3bComponent {
       // In zoneless mode, this view update will NOT happen
       this.lazyComplete.emit(this.counter);
     }, 1000);
+  }
+
+  forceUpdate(): void {
+    // Manually trigger change detection to show the actual counter value
+    this.cdr.markForCheck();
   }
 }

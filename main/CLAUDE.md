@@ -4,6 +4,8 @@ This project uses **pnpm** for package management. Run commands from the `main/`
 
 **IMPORTANT**: Do NOT run pnpm commands yourself. The user runs this on Windows while Claude Code runs in WSL - running pnpm from WSL will mess up the installed dependencies. Only update package.json files and let the user run the commands.
 
+**VERSIONING**: Whenever you make changes to the shared library that need to be published, increment the version in `libs/shared/package.json` before building and publishing.
+
 ## Key Commands
 
 ```bash

@@ -10,7 +10,7 @@ Tests shared web components across Angular 15 and Angular 20 applications using 
 
 ## Prerequisites
 
-Local npm registry at `http://0.0.0.0:4873` (e.g., Verdaccio)
+Local npm registry at `http://localhost:4873` (e.g., Verdaccio)
 
 ## Install
 
