@@ -5,6 +5,11 @@
     "declaration": true,
     "types": []
   },
+  "angularCompilerOptions": {
+    "compilationMode": "partial",
+    "enableIvy": true,
+    "generateDeepReexports": false
+  },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.spec.ts"]
 }

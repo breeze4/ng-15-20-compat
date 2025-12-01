@@ -5,14 +5,20 @@
   "projectType": "library",
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "executor": "@nx/angular:package",
+      "outputs": ["{workspaceRoot}/dist/libs/shared"],
       "options": {
-        "outputPath": "dist/libs/shared",
-        "main": "libs/shared/src/index.ts",
-        "tsConfig": "libs/shared/tsconfig.lib.json",
-        "assets": ["libs/shared/package.json"]
-      }
+        "project": "libs/shared/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/shared/tsconfig.lib.json"
+        },
+        "development": {
+          "tsConfig": "libs/shared/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
     }
   },
   "tags": []

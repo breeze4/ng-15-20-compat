@@ -5,7 +5,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   ViewEncapsulation,
-  Inject,
+  inject,
 } from '@angular/core';
 
 /**
@@ -49,11 +49,10 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ZoneScenario3aComponent {
+  private cdr = inject(ChangeDetectorRef);
+
   @Output() asyncComplete = new EventEmitter<number>();
-
   counter = 0;
-
-  constructor(@Inject(ChangeDetectorRef) private cdr: ChangeDetectorRef) {}
 
   startAsync(): void {
     setTimeout(() => {

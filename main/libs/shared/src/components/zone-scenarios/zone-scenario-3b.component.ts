@@ -5,7 +5,7 @@ import {
   ChangeDetectionStrategy,
   ViewEncapsulation,
   ChangeDetectorRef,
-  Inject,
+  inject,
 } from '@angular/core';
 
 /**
@@ -62,11 +62,10 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ZoneScenario3bComponent {
+  private cdr = inject(ChangeDetectorRef);
+
   @Output() lazyComplete = new EventEmitter<number>();
-
   counter = 0;
-
-  constructor(@Inject(ChangeDetectorRef) private cdr: ChangeDetectorRef) {}
 
   startAsync(): void {
     setTimeout(() => {
